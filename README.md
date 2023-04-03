@@ -1,3 +1,3 @@
 # project baldej
-small sandbox game\n
-currently work in progress
+##small sandbox game  
+##currently work in progress
