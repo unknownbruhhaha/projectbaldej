@@ -1,0 +1,10 @@
+/home/unknownbruh/Documents/projectbaldej/BaldejFramework/bin/Debug/net7.0/BaldejFramework.deps.json
+/home/unknownbruh/Documents/projectbaldej/BaldejFramework/bin/Debug/net7.0/BaldejFramework.dll
+/home/unknownbruh/Documents/projectbaldej/BaldejFramework/bin/Debug/net7.0/BaldejFramework.pdb
+/home/unknownbruh/Documents/projectbaldej/BaldejFramework/obj/Debug/net7.0/BaldejFramework.csproj.AssemblyReference.cache
+/home/unknownbruh/Documents/projectbaldej/BaldejFramework/obj/Debug/net7.0/BaldejFramework.GeneratedMSBuildEditorConfig.editorconfig
+/home/unknownbruh/Documents/projectbaldej/BaldejFramework/obj/Debug/net7.0/BaldejFramework.csproj.CoreCompileInputs.cache
+/home/unknownbruh/Documents/projectbaldej/BaldejFramework/obj/Debug/net7.0/BaldejFramework.dll
+/home/unknownbruh/Documents/projectbaldej/BaldejFramework/obj/Debug/net7.0/refint/BaldejFramework.dll
+/home/unknownbruh/Documents/projectbaldej/BaldejFramework/obj/Debug/net7.0/BaldejFramework.pdb
+/home/unknownbruh/Documents/projectbaldej/BaldejFramework/obj/Debug/net7.0/ref/BaldejFramework.dll

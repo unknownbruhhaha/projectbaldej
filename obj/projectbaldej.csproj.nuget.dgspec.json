@@ -1,0 +1,187 @@
+{
+  "format": 1,
+  "restore": {
+    "/home/unknownbruh/Documents/projectbaldej/projectbaldej.csproj": {}
+  },
+  "projects": {
+    "/home/unknownbruh/Documents/projectbaldej/BaldejFramework/BaldejFramework.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "/home/unknownbruh/Documents/projectbaldej/BaldejFramework/BaldejFramework.csproj",
+        "projectName": "BaldejFramework",
+        "projectPath": "/home/unknownbruh/Documents/projectbaldej/BaldejFramework/BaldejFramework.csproj",
+        "packagesPath": "/home/unknownbruh/.nuget/packages/",
+        "outputPath": "/home/unknownbruh/Documents/projectbaldej/BaldejFramework/obj/",
+        "projectStyle": "PackageReference",
+        "configFilePaths": [
+          "/home/unknownbruh/Documents/projectbaldej/BaldejFramework/nuget.config",
+          "/home/unknownbruh/.nuget/NuGet/NuGet.Config"
+        ],
+        "originalTargetFrameworks": [
+          "net7.0"
+        ],
+        "sources": {
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net7.0": {
+            "targetAlias": "net7.0",
+            "projectReferences": {}
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        }
+      },
+      "frameworks": {
+        "net7.0": {
+          "targetAlias": "net7.0",
+          "dependencies": {
+            "BepuPhysics": {
+              "target": "Package",
+              "version": "[1.5.2, )"
+            },
+            "CSCore": {
+              "target": "Package",
+              "version": "[1.2.1.2, )"
+            },
+            "LiteNetLib": {
+              "target": "Package",
+              "version": "[0.9.5.2, )"
+            },
+            "NeoLua": {
+              "target": "Package",
+              "version": "[1.3.14, )"
+            },
+            "Newtonsoft.Json": {
+              "target": "Package",
+              "version": "[13.0.2, )"
+            },
+            "OpenTK": {
+              "target": "Package",
+              "version": "[4.7.2, )"
+            },
+            "OpenTK.redist.glfw": {
+              "target": "Package",
+              "version": "[3.3.8.30, )"
+            },
+            "SixLabors.Fonts": {
+              "target": "Package",
+              "version": "[1.0.0-beta17, )"
+            },
+            "SixLabors.ImageSharp": {
+              "target": "Package",
+              "version": "[2.1.3, )"
+            },
+            "SixLabors.ImageSharp.Drawing": {
+              "target": "Package",
+              "version": "[1.0.0-beta14, )"
+            },
+            "System.Drawing.Common": {
+              "target": "Package",
+              "version": "[6.0.0, )"
+            }
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "downloadDependencies": [
+            {
+              "name": "Microsoft.AspNetCore.App.Ref",
+              "version": "[7.0.3, 7.0.3]"
+            }
+          ],
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "/usr/share/dotnet/sdk/7.0.103/RuntimeIdentifierGraph.json"
+        }
+      }
+    },
+    "/home/unknownbruh/Documents/projectbaldej/projectbaldej.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "/home/unknownbruh/Documents/projectbaldej/projectbaldej.csproj",
+        "projectName": "projectbaldej",
+        "projectPath": "/home/unknownbruh/Documents/projectbaldej/projectbaldej.csproj",
+        "packagesPath": "/home/unknownbruh/.nuget/packages/",
+        "outputPath": "/home/unknownbruh/Documents/projectbaldej/obj/",
+        "projectStyle": "PackageReference",
+        "configFilePaths": [
+          "/home/unknownbruh/.nuget/NuGet/NuGet.Config"
+        ],
+        "originalTargetFrameworks": [
+          "net7.0"
+        ],
+        "sources": {
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net7.0": {
+            "targetAlias": "net7.0",
+            "projectReferences": {
+              "/home/unknownbruh/Documents/projectbaldej/BaldejFramework/BaldejFramework.csproj": {
+                "projectPath": "/home/unknownbruh/Documents/projectbaldej/BaldejFramework/BaldejFramework.csproj"
+              }
+            }
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        }
+      },
+      "frameworks": {
+        "net7.0": {
+          "targetAlias": "net7.0",
+          "dependencies": {
+            "OpenTK": {
+              "target": "Package",
+              "version": "[4.7.2, )"
+            },
+            "UnmanagedArray": {
+              "target": "Package",
+              "version": "[2.1.3, )"
+            }
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "downloadDependencies": [
+            {
+              "name": "Microsoft.AspNetCore.App.Ref",
+              "version": "[7.0.3, 7.0.3]"
+            }
+          ],
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "/usr/share/dotnet/sdk/7.0.103/RuntimeIdentifierGraph.json"
+        }
+      }
+    }
+  }
+}

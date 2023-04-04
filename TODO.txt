@@ -1,0 +1,3 @@
+TODO list:
+	1. move from BepuPhysics to Newton Dynamics
+	2. fix Lua in Networking.cs (NLua -> NeoLua)
