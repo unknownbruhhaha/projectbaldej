@@ -13,7 +13,17 @@ namespace BaldejFramework
 		static int _id;
 		public static Dictionary<int, GameObject> CollisionObjectsIDs = new Dictionary<int, GameObject>();
 		public static int TotallyCollisionObjectSpawned = 0;
+		
+		private static float[] _bodyMatrix = {
+				1.0f, 0.0f, 0.0f, 0.0f,
+				0.0f, 1.0f, 0.0f, 0.0f,
+				0.0f, 0.0f, 1.0f, 0.0f,
+				0.0f, 0.0f, 0.0f, 1.0f
+		};
 
+		private static GCHandle _bodyMatrixHandle = GCHandle.Alloc(_bodyMatrix, GCHandleType.Pinned);
+		public static IntPtr BodyMatrixPointer = _bodyMatrixHandle.AddrOfPinnedObject();
+	
 		public static void Init() 
 		{
 				World = NewtonCreate();
@@ -27,8 +37,9 @@ namespace BaldejFramework
 
 		public static void Update()
 		{
-			Space.Update();
-			Space.ForceUpdater.Gravity = new Vector3(0, -9.8f, 0);
+				NewtonUpdate(World, Render.Render.DeltaTime);	
+				Space.Update();
+				Space.ForceUpdater.Gravity = new Vector3(0, -9.8f, 0);
 		}
 		
 		public static Dictionary<string, object> Raycast(Vector3 rayPosition, Vector3 rayDirection)

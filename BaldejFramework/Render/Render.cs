@@ -198,6 +198,7 @@ namespace BaldejFramework.Render
 
         private static void Window_UpdateFrame(FrameEventArgs obj)
         {
+						DeltaTime = Convert.ToSingle(obj.Time);
             if (!IsPaused)
             {
                 foreach (object o in CallNewFrame)
