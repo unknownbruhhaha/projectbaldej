@@ -448,7 +448,8 @@
           "SixLabors.Fonts": "1.0.0-beta17",
           "SixLabors.ImageSharp": "2.1.3",
           "SixLabors.ImageSharp.Drawing": "1.0.0-beta14",
-          "System.Drawing.Common": "6.0.0"
+          "System.Drawing.Common": "6.0.0",
+          "UnmanagedArray": "2.1.3"
         },
         "compile": {
           "bin/placeholder/BaldejFramework.dll": {}
@@ -1069,8 +1070,7 @@
   "projectFileDependencyGroups": {
     "net7.0": [
       "BaldejFramework >= 1.0.0",
-      "OpenTK >= 4.7.2",
-      "UnmanagedArray >= 2.1.3"
+      "OpenTK >= 4.7.2"
     ]
   },
   "packageFolders": {
@@ -1117,10 +1117,6 @@
           "OpenTK": {
             "target": "Package",
             "version": "[4.7.2, )"
-          },
-          "UnmanagedArray": {
-            "target": "Package",
-            "version": "[2.1.3, )"
           }
         },
         "imports": [

@@ -1,6 +1,7 @@
 ﻿using BEPUphysics;
 using BEPUutilities;
 using System.Runtime.InteropServices;
+using UnmanageUtility;
 
 namespace BaldejFramework
 {
@@ -14,19 +15,30 @@ namespace BaldejFramework
 		public static Dictionary<int, GameObject> CollisionObjectsIDs = new Dictionary<int, GameObject>();
 		public static int TotallyCollisionObjectSpawned = 0;
 		
-		private static float[] _bodyMatrix = {
-				1.0f, 0.0f, 0.0f, 0.0f,
-				0.0f, 1.0f, 0.0f, 0.0f,
-				0.0f, 0.0f, 1.0f, 0.0f,
-				0.0f, 0.0f, 0.0f, 1.0f
-		};
-
-		private static GCHandle _bodyMatrixHandle = GCHandle.Alloc(_bodyMatrix, GCHandleType.Pinned);
-		public static IntPtr BodyMatrixPointer = _bodyMatrixHandle.AddrOfPinnedObject();
-	
+		public static IntPtr BodyMatrixPointer;
+		public static IntPtr GravityForcePointer;
+		
+		public static NewtonBodyEventHandler ApplyGravity = ApplyGravityCallback;
+		private static UnmanagedArray<float> _state = new(16);
+		public static UnmanagedArray<float> BodyTransformationMatrix = new(16);
+		
 		public static void Init() 
 		{
 				World = NewtonCreate();
+				// setting some vars
+						// body matrix
+				float[] _bodyMatrix = {
+						1.0f, 0.0f, 0.0f, 0.0f,
+						0.0f, 1.0f, 0.0f, 0.0f,
+						0.0f, 0.0f, 1.0f, 0.0f,
+						0.0f, 0.0f, 0.0f, 1.0f
+				};
+				GCHandle _bodyMatrixHandle = GCHandle.Alloc(_bodyMatrix, GCHandleType.Pinned);
+				BodyMatrixPointer = _bodyMatrixHandle.AddrOfPinnedObject();
+						// gravity force
+				float[] _gravityForce = {0, -9.8f, 0};
+				GCHandle _gravityForceHandle = GCHandle.Alloc(_gravityForce, GCHandleType.Pinned);
+				GravityForcePointer = _gravityForceHandle.AddrOfPinnedObject();
 		}
 
 		public static int GenID()
@@ -65,12 +77,28 @@ namespace BaldejFramework
 				{"RaycastResult", result}
 			};
 		}
+				
+		private static void ApplyGravityCallback(IntPtr bodyID)
+		{	
+				NewtonBodySetForce(bodyID, Physics.GravityForcePointer);
+
+				NewtonBodyGetMatrix(bodyID, _state.Ptr);
+				Console.WriteLine("Time {0}: x={1} y={2} z={3}\n",
+						Render.Render.DeltaTime, _state[12], _state[13], _state[14]);
+		}
 
 		// Newton Dynamics p/invoke
 		[DllImport("libNewton")]
 		private static extern IntPtr NewtonCreate();
 		[DllImport("libNewton")]
 		private static extern IntPtr NewtonUpdate(IntPtr newtonWorld, float timestep);
+		[DllImport("libNewton")]
+		private static extern void NewtonBodySetForce(IntPtr body, IntPtr force);
+		[DllImport("libNewton")]
+		private static extern void NewtonBodyGetMatrix(IntPtr body, IntPtr matrix);
+		
+		[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+		public delegate void NewtonBodyEventHandler(IntPtr body);
 	}
 }
 
