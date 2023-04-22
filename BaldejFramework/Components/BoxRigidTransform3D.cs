@@ -1,48 +1,44 @@
 ﻿using System.Runtime.InteropServices;
-using BEPUphysics.Entities.Prefabs;
-using BEPUutilities;
-using Vector3 = OpenTK.Mathematics.Vector3;
-using UnmanageUtility;
+using OpenTK.Mathematics;
 
 namespace BaldejFramework.Components
 {
     public class BoxRigidTransform3D : Transform, IDisposable
     {
-        public Vector3 Position { get => _position; set { _position = value; UpdateBody(); } }
-        public Vector3 Rotation { get => _rotation; set { _rotation = value; UpdateBody(); } }
-        public Vector3 Scale { get => _scale; set { _scale = value; UpdateBody(); } }
+        public Vector3 Position { get => GetPosition(); set { _newPosition = value; } }
+        public Vector3 Rotation { get => GetRotation(); set { _newRotation = value; } }
+        public Vector3 Scale { get => _scale; set { SetScale(value); } }
         
-				public float Mass { get => _mass; set { _mass = value; UpdateBody(); } }
+				public float Mass { get => _mass; set { SetMass(value); } }
         public string componentID { get => "Transform"; }
         public GameObject? owner { get; set; }
 
-        private Vector3 _position;
-        private Vector3 _rotation;
         private Vector3 _scale;
         private Vector3 _collisionSize;
         private float _mass;
 
         private int collisionID = Physics.TotallyCollisionObjectSpawned + 1;
-				IntPtr _collision;
-				IntPtr _body;
+				private IntPtr _collision;
+				private IntPtr _body;
+
+				private Vector3? _newPosition;
+				private Vector3? _newRotation;
         
 				public BoxRigidTransform3D(Vector3 position, Vector3 rotation, Vector3 scale, Vector3 collisionSize, float mass = 1)
         {
-            //_box = new Box(new BEPUutilities.Vector3(position.X, position.Y, position.Z), collisionSize.X * 2, collisionSize.Y * 2, collisionSize.Z * 2, mass);
-            //Physics.Space.Add(_box);
-	
 						_collision = NewtonCreateBox(Physics.World, collisionSize.X, collisionSize.Y, collisionSize.Z, 0, new IntPtr());
 						_body = NewtonCreateDynamicBody(Physics.World, _collision, Physics.BodyMatrixPointer);
-						NewtonBodySetMassMatrix(_body, mass, 1, 1, 1);
 						NewtonBodySetForceAndTorqueCallback(_body, Physics.ApplyGravity);
+						NewtonBodySetLinearDamping(_body, 0.7f);
+						NewtonBodySetAngularDamping(_body, Physics.AngularDampingPtr);
 
             _collisionSize = collisionSize;
-            _position = position;
-            _rotation = rotation;
-            _scale = scale;
-            _mass = mass;
-            Physics.TotallyCollisionObjectSpawned++;
-            //_box.CollisionInformation.Tag = collisionID;
+						UpdateMatrix(rotation, position);
+						_scale = scale; 
+						_collisionSize = collisionSize;
+						//SetScale(scale);
+						SetMass(mass);
+						Physics.TotallyCollisionObjectSpawned++;
         }
 
         public void Start()
@@ -50,27 +46,14 @@ namespace BaldejFramework.Components
             Physics.CollisionObjectsIDs.Add(collisionID, owner);
         }
 
-        public void OnRender()
-        {
-            
-        }
+        public void OnRender() { }
 
         public void OnUpdate()
-        {
-            //_position = new(_box.Position.X, _box.Position.Y, _box.Position.Z);
-            //_rotation = new(Convert.ToSingle(Math.PI / 180) * _box.Orientation.X, Convert.ToSingle(Math.PI / 180) *  _box.Orientation.Y, Convert.ToSingle(Math.PI / 180) *  _box.Orientation.Z);
-        }
-
-        private void UpdateBody()
-        {
-            /*_box = new Box(new BEPUutilities.Vector3(_position.X, _position.Y, _position.Z), _collisionSize.X * 2f, _collisionSize.Y * 2f, _collisionSize.Z * 2f, _mass);
-            _box.OrientationMatrix = Matrix3x3.CreateFromQuaternion(new Quaternion(_rotation.X / Convert.ToSingle(Math.PI / 180), _rotation.Y / Convert.ToSingle(Math.PI / 180), _rotation.Z / Convert.ToSingle(Math.PI / 180), 1));
-            
-            if (IsKinematic)
-                _box.BecomeKinematic();
-            
-            Physics.Space.Add(_box);
-						*/
+				{
+						if (_newRotation == null && _newPosition != null) UpdatePosition((Vector3)_newPosition);
+						else if (_newRotation != null) UpdateMatrix((Vector3)_newRotation, _newPosition);
+						_newPosition = null;
+						_newRotation = null;
 				}
 
 				private Vector3 GetPosition()
@@ -83,22 +66,45 @@ namespace BaldejFramework.Components
 				private Vector3 GetRotation()
 				{
 						NewtonBodyGetMatrix(_body, Physics.BodyTransformationMatrix.Ptr);
+
+						NewtonGetEulerAngle(Physics.BodyTransformationMatrix.Ptr, Physics.BodyRotation.Ptr);
+						Vector3 rotationVector = new (MathUtils.Rad2Deg * Physics.BodyRotation[0], MathUtils.Rad2Deg * Physics.BodyRotation[1], MathUtils.Rad2Deg * Physics.BodyRotation[2]);
 						Vector3 positionVector = new Vector3(Physics.BodyTransformationMatrix[12], Physics.BodyTransformationMatrix[13], Physics.BodyTransformationMatrix[14]);
-						return positionVector;
+						return rotationVector;
 				}
 				
-				private Vector3 GetSize()
+				private void UpdateMatrix(Vector3 rotation, Vector3? position)
 				{
 						NewtonBodyGetMatrix(_body, Physics.BodyTransformationMatrix.Ptr);
-						Vector3 sizeVector = new Vector3(Physics.BodyTransformationMatrix[12], Physics.BodyTransformationMatrix[13], Physics.BodyTransformationMatrix[14]);
-						return sizeVector;
+						
+						Vector3 currentBodyPosition = new (Physics.BodyTransformationMatrix[12], Physics.BodyTransformationMatrix[13], Physics.BodyTransformationMatrix[14]);
+						Physics.SetRotationInMatrix(rotation);
+						if (position != null) Physics.SetPositionInMatrix((Vector3)position); 
+						else Physics.SetPositionInMatrix(currentBodyPosition); 
+
+						NewtonBodySetMatrix(_body, Physics.BodyTransformationMatrix.Ptr);
 				}
 
+				private void UpdatePosition(Vector3 position)
+				{
+						NewtonBodyGetMatrix(_body, Physics.BodyTransformationMatrix.Ptr);
+						Physics.SetPositionInMatrix(position);
+						NewtonBodySetMatrix(_body, Physics.BodyTransformationMatrix.Ptr);
+				}
 
-        public void AddForce(Vector3 force)
-        {
-            //_box.ApplyImpulse(BEPUutilities.Vector3.Zero, new BEPUutilities.Vector3(force.X, force.Y, force.Z));
-        }
+				private void SetScale(Vector3 scale)
+				{
+						_scale = scale; 
+						NewtonBodySetCollisionScale(_body, _collisionSize.X * scale.X, _collisionSize.Y * scale.Y, 	_collisionSize.Z * scale.Z); 
+				}
+
+				private void SetMass(float mass)
+				{
+						_mass = mass;
+						NewtonBodySetMassMatrix(_body, mass, 1, 1, 1);
+				}
+
+        // TODO: public void AddForce(Vector3 force) {}
 
         public void Dispose()
         {
@@ -116,8 +122,22 @@ namespace BaldejFramework.Components
 				[DllImport("libNewton")]
 				private static extern void NewtonBodySetForce(IntPtr body, IntPtr force);
 				[DllImport("libNewton")]
+				private static extern void NewtonBodyGetRotation(IntPtr body, IntPtr rotation);
+				[DllImport("libNewton")]
 				private static extern void NewtonBodyGetMatrix(IntPtr body, IntPtr matrix);
-		
+				[DllImport("libNewton")]
+				private static extern void NewtonBodySetCollisionScale (IntPtr body, float scaleX, float scaleY, float scaleZ);	
+				[DllImport("libNewton")]
+				private static extern void NewtonBodySetMatrix(IntPtr body, IntPtr matrix);
+				[DllImport("libNewton")]
+				private static extern void NewtonGetEulerAngle(IntPtr matrix, IntPtr eulerAngles);
+				[DllImport("libNewton")]
+				private static extern void NewtonSetEulerAngle(IntPtr eulerAngles, IntPtr matrix);
+				[DllImport("libNewton")]
+				private static extern void NewtonBodySetLinearDamping(IntPtr body, float linearDamp);
+				[DllImport("libNewton")]
+				private static extern void NewtonBodySetAngularDamping(IntPtr body, IntPtr angularDamp);
+
 				[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
 				private delegate void NewtonBodyEventHandler(IntPtr body);
 		}

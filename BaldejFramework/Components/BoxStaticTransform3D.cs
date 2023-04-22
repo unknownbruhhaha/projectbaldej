@@ -1,75 +1,132 @@
-﻿using BEPUphysics;
-using BEPUphysics.BroadPhaseEntries;
-using BEPUphysics.Entities.Prefabs;
-using BEPUphysics.EntityStateManagement;
-using BEPUutilities;
-using Vector3 = OpenTK.Mathematics.Vector3;
+﻿using System.Runtime.InteropServices;
+using OpenTK.Mathematics;
 
 namespace BaldejFramework.Components
 {
     public class BoxStaticTransform3D : Transform
     {
-        public Vector3 Position { get => _position; set { _position = value; UpdateBody(); } }
-
-        public Vector3 Rotation { get => _rotation; set { _rotation = value; UpdateBody(); } }
-        public Vector3 Scale { get => _scale; set { _scale = value; UpdateBody(); } }
+        public Vector3 Position { get => GetPosition(); set { _newPosition = value; } }
+        public Vector3 Rotation { get => GetRotation(); set { _newRotation = value; } }
+        public Vector3 Scale { get => _scale; set { SetScale(value); } }
+        
         public string componentID { get => "Transform"; }
         public GameObject? owner { get; set; }
 
-        private Box _box;
-
-        private Vector3 _position;
-        private Vector3 _rotation;
         private Vector3 _scale;
+        private Vector3 _collisionSize;
         private float _mass;
-        
+
         private int collisionID = Physics.TotallyCollisionObjectSpawned + 1;
+				private IntPtr _collision;
+				private IntPtr _body;
 
-        public BoxStaticTransform3D(Vector3 position, Vector3 rotation, Vector3 scale)
-        {
-            Position = position;
-            Rotation = rotation;
-            Scale = scale;
-            Physics.TotallyCollisionObjectSpawned++;
-            _box.CollisionInformation.Tag = collisionID;
-        }
-
-        public BoxStaticTransform3D()
-        {
-            Position = Vector3.Zero;
-            Rotation = Vector3.Zero;
-            Scale = Vector3.One;
-            Physics.TotallyCollisionObjectSpawned++;
-            _box.CollisionInformation.Tag = collisionID;
-        }
+				private Vector3? _newPosition;
+				private Vector3? _newRotation;
         
+				public BoxStaticTransform3D(Vector3 position, Vector3 rotation, Vector3 scale, Vector3 collisionSize)
+        {
+						_collision = NewtonCreateBox(Physics.World, collisionSize.X, collisionSize.Y, collisionSize.Z, 0, new IntPtr());
+						_body = NewtonCreateDynamicBody(Physics.World, _collision, Physics.BodyMatrixPointer);
+						//NewtonBodySetForceAndTorqueCallback(_body, Physics.ApplyGravity);
+
+						UpdateMatrix(rotation, position);
+						_scale = scale; 
+						_collisionSize = collisionSize;
+						//NewtonBodySetCollisionScale(_body, _collisionSize.X, _collisionSize.Y, 	_collisionSize.Z); 
+						Physics.TotallyCollisionObjectSpawned++;
+        }
+
         public void Start()
         {
             Physics.CollisionObjectsIDs.Add(collisionID, owner);
         }
 
-        public void OnRender()
-        {
-
-        }
+        public void OnRender() { }
 
         public void OnUpdate()
-        {
-            _position = new(_box.Position.X, _box.Position.Y, _box.Position.Z);
-            _rotation = new(_box.Orientation.X, _box.Orientation.Y, _box.Orientation.Z);
-        }
+				{
+						if (_newRotation == null && _newPosition != null) UpdatePosition((Vector3)_newPosition);
+						else if (_newRotation != null) UpdateMatrix((Vector3)_newRotation, _newPosition);
+						_newPosition = null;
+						_newRotation = null;
+				}
 
-        private void UpdateBody()
-        {
-            _box = new Box(new BEPUutilities.Vector3(Position.X, Position.Y, Position.Z), _scale.X * 2f, _scale.Y * 2f, _scale.Z * 2f);
-            _box.OrientationMatrix = Matrix3x3.CreateFromQuaternion(new Quaternion(Convert.ToSingle(Math.PI / 180) *  _rotation.X, Convert.ToSingle(Math.PI / 180) * _rotation.Y, Convert.ToSingle(Math.PI / 180) * _rotation.Z, 1));
+				private Vector3 GetPosition()
+				{
+						NewtonBodyGetMatrix(_body, Physics.BodyTransformationMatrix.Ptr);
+						Vector3 positionVector = new Vector3(Physics.BodyTransformationMatrix[12], Physics.BodyTransformationMatrix[13], Physics.BodyTransformationMatrix[14]);
+						return positionVector;
+				}
+				
+				private Vector3 GetRotation()
+				{
+						NewtonBodyGetMatrix(_body, Physics.BodyTransformationMatrix.Ptr);
 
-            Physics.Space.Add(_box);
-        }
-        
+						NewtonGetEulerAngle(Physics.BodyTransformationMatrix.Ptr, Physics.BodyRotation.Ptr);
+						Vector3 rotationVector = new (MathUtils.Rad2Deg * Physics.BodyRotation[0], MathUtils.Rad2Deg * Physics.BodyRotation[1], MathUtils.Rad2Deg * Physics.BodyRotation[2]);
+						Vector3 positionVector = new Vector3(Physics.BodyTransformationMatrix[12], Physics.BodyTransformationMatrix[13], Physics.BodyTransformationMatrix[14]);
+						return rotationVector;
+				}
+				
+				private void UpdateMatrix(Vector3 rotation, Vector3? position)
+				{
+						NewtonBodyGetMatrix(_body, Physics.BodyTransformationMatrix.Ptr);
+						
+						Vector3 currentBodyPosition = new (Physics.BodyTransformationMatrix[12], Physics.BodyTransformationMatrix[13], Physics.BodyTransformationMatrix[14]);
+						Physics.SetRotationInMatrix(rotation);
+						if (position != null) Physics.SetPositionInMatrix((Vector3)position); 
+						else Physics.SetPositionInMatrix(currentBodyPosition); 
+
+						NewtonBodySetMatrix(_body, Physics.BodyTransformationMatrix.Ptr);
+				}
+
+				private void UpdatePosition(Vector3 position)
+				{
+						NewtonBodyGetMatrix(_body, Physics.BodyTransformationMatrix.Ptr);
+						Physics.SetPositionInMatrix(position);
+						NewtonBodySetMatrix(_body, Physics.BodyTransformationMatrix.Ptr);
+				}
+
+				private void SetScale(Vector3 scale)
+				{
+						_scale = scale; 
+						NewtonBodySetCollisionScale(_body, _collisionSize.X * scale.X, _collisionSize.Y * scale.Y, 	_collisionSize.Z * scale.Z); 
+						Console.WriteLine(_scale);
+				}
+
+        // TODO: public void AddForce(Vector3 force) {}
+
         public void Dispose()
         {
             Physics.CollisionObjectsIDs.Remove(collisionID);
         }
+
+				[DllImport("libNewton")]
+				private static extern IntPtr NewtonCreateBox(IntPtr newtonWorld, float dx, float dy, float dz, int shapeID, IntPtr offsetMatrix);
+				[DllImport("libNewton")]
+				private static extern IntPtr NewtonCreateDynamicBody(IntPtr newtonWorld, IntPtr collision, IntPtr offsetMatrix);
+				[DllImport("libNewton")]
+				private static extern void NewtonBodySetMassMatrix(IntPtr body, float mass, float Ixx, float Iyy, float Izz);
+				[DllImport("libNewton")]
+				private static extern void NewtonBodySetForceAndTorqueCallback(IntPtr body, Physics.NewtonBodyEventHandler callback);
+				[DllImport("libNewton")]
+				private static extern void NewtonBodySetForce(IntPtr body, IntPtr force);
+				[DllImport("libNewton")]
+				private static extern void NewtonBodyGetRotation(IntPtr body, IntPtr rotation);
+				[DllImport("libNewton")]
+				private static extern void NewtonBodyGetMatrix(IntPtr body, IntPtr matrix);
+				[DllImport("libNewton")]
+				private static extern void NewtonBodySetCollisionScale (IntPtr body, float scaleX, float scaleY, float scaleZ);	
+				[DllImport("libNewton")]
+				private static extern void NewtonBodySetMatrix(IntPtr body, IntPtr matrix);
+				[DllImport("libNewton")]
+				private static extern void NewtonBodySetMatrixRecursive(IntPtr body, IntPtr matrix);
+				[DllImport("libNewton")]
+				private static extern void NewtonGetEulerAngle(IntPtr matrix, IntPtr eulerAngles);
+				[DllImport("libNewton")]
+				private static extern void NewtonSetEulerAngle(IntPtr eulerAngles, IntPtr matrix);
+
+				[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+				private delegate void NewtonBodyEventHandler(IntPtr body);
     }
 }

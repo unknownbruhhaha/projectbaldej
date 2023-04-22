@@ -22,6 +22,19 @@ namespace BaldejFramework.Render
         public static List<object> CallNewFrame = new();
         public static object game;
         public static Type gameType;
+				public static bool VSync
+				{
+						set 
+						{
+								if (value == true) window.VSync = VSyncMode.On;
+								else window.VSync = VSyncMode.Off;
+						}
+						get
+						{
+								if (window.VSync == VSyncMode.On) return true;
+								else return false;
+						}
+				}
 
         public static bool IsPaused = false;
 
@@ -173,7 +186,6 @@ namespace BaldejFramework.Render
         private static void Window_Load()
         {
 						Physics.Init();
-            //window.UpdateFrequency = 60;
             Console.WriteLine("Game window loaded!");
             Console.WriteLine("GL version: " + window.APIVersion);
             GL.Enable(EnableCap.Texture2D);
@@ -198,7 +210,6 @@ namespace BaldejFramework.Render
 
         private static void Window_UpdateFrame(FrameEventArgs obj)
         {
-						DeltaTime = Convert.ToSingle(obj.Time);
             if (!IsPaused)
             {
                 foreach (object o in CallNewFrame)
@@ -234,6 +245,7 @@ namespace BaldejFramework.Render
 
         private static void Window_RenderFrame(FrameEventArgs obj)
         {
+						DeltaTime = Convert.ToSingle(window.RenderTime);
             _fps++;
             _currentTime += window.RenderTime;
             
